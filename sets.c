@@ -1,8 +1,6 @@
 #include <stdlib.h>
 #include "sets.h"
 
-#include <stdio.h>
-
 struct set {
     void *arr;
     size_t nr_elem;
@@ -89,15 +87,16 @@ int add_elem(struct set *s,
         s = temp;
     }
     char *new_elem_adr = (char *)s->arr + s->nr_elem * s->sizeof_elem;
-    // Segfault here!
     if (s->create_copy_elem(new_elem_adr, elem_adr) == -1) {
-        // Need a destroy set function here!
         if (status_adr) {
             *status_adr = MEMORY_ERROR;
         }
         return -1;
     }
     s->nr_elem++;
+    if (status_adr) {
+        *status_adr = OK;
+    }
     return 0;
 }
 
@@ -129,7 +128,9 @@ int destroy_set(struct set *s, enum status *status_adr)
     }
     for (size_t i = 0; i < s->nr_elem; ++i) {
         char *curr_elem_adr = (char *)s->arr + i * s->sizeof_elem;
-        s->destroy_elem(curr_elem_adr);
+        if (curr_elem_adr) {
+            s->destroy_elem(curr_elem_adr);
+        }
     }
     free(s->arr);
     free(s);
