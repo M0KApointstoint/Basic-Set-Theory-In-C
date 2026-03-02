@@ -16,6 +16,9 @@ int comp_string(const void *a, const void *b)
 
 int create_copy_string(void *dest_string_adr, const void *src_string_adr)
 {
+    if (!dest_string_adr || !src_string_adr) {
+        return 1;
+    }
     char *src_string = *(char **)src_string_adr;
     size_t src_len = strlen(src_string);
     char *dest_string = malloc((src_len + 1) * sizeof(char));
@@ -47,11 +50,11 @@ int main(void)
     size_t capacity = 32;
     struct set *s = create_set(capacity, 
                                sizeof(char *),
-                               NULL, 
                                comp_string, 
                                create_copy_string, 
                                print_string, 
-                               destroy_string);
+                               destroy_string,
+                               NULL);
     size_t string_size = 32;
     char *s1 = malloc(string_size);
     char *s2 = malloc(string_size);
@@ -63,11 +66,17 @@ int main(void)
     add_elem(s, &s2, NULL);
     add_elem(s, &s2, NULL); // Checking duplicates.
     add_elem(s, &s3, NULL);
-    remove_elem(s, &s3, NULL);
+    // remove_elem(s, &s3, NULL);
+    
+    struct set *copy = deep_copy_set(s, NULL);
+    destroy_set(&s, NULL);
+    print_set(copy, NULL);
+    destroy_set(&copy, NULL);
+
     free(s1);
     free(s2);
     free(s3);
     print_set(s, NULL);
-    destroy_set(s, NULL);
+    destroy_set(&s, NULL);
     return 0;
 }

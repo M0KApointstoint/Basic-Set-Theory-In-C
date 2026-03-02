@@ -14,11 +14,11 @@ struct set {
 
 struct set *create_set(const size_t max_capacity,
                        const size_t sizeof_elem,
-                       enum status *status_adr,
                        int (*comp_elem)(const void *, const void *),
                        int (*create_copy_elem)(void *, const void *),
                        void (*print_elem)(const void *),
-                       void (*destroy_elem)(void *))
+                       void (*destroy_elem)(void *),
+                       enum status *status_adr)
 {
     if (!max_capacity ||
         !sizeof_elem ||
@@ -129,22 +129,23 @@ int print_set(const struct set *s, enum status *status_adr)
     return 0;
 }
 
-int destroy_set(struct set *s, enum status *status_adr)
+int destroy_set(struct set **s_adr, enum status *status_adr)
 {
-    if (!s) {
+    if (!s_adr || !*s_adr) {
         if (status_adr) {
             *status_adr = INVALID_INPUT;
         }
         return 1;
     }
-    for (size_t i = 0; i < s->nr_elem; ++i) {
-        char *curr_elem_adr = (char *)s->arr + i * s->sizeof_elem;
+    for (size_t i = 0; i < (*s_adr)->nr_elem; ++i) {
+        char *curr_elem_adr = (char *)(*s_adr)->arr + i * (*s_adr)->sizeof_elem;
         if (curr_elem_adr) {
-            s->destroy_elem(curr_elem_adr);
+            (*s_adr)->destroy_elem(curr_elem_adr);
         }
     }
-    free(s->arr);
-    free(s);
+    free((*s_adr)->arr);
+    free(*s_adr);
+    *s_adr = NULL;
     if (status_adr) {
         *status_adr = OK;
     }
@@ -175,6 +176,38 @@ int remove_elem(struct set *s, const void *elem_adr, enum status *status_adr)
     return 3;
 }
 
+struct set *deep_copy_set(const struct set *s, enum status *status_adr)
+{
+    if (!s) {
+        if (status_adr) {
+            *status_adr = INVALID_INPUT;
+        }
+        return NULL;
+    }
+    struct set *copy = create_set(s->max_capacity, 
+                                  s->sizeof_elem,
+                                  s->comp_elem, 
+                                  s->create_copy_elem, 
+                                  s->print_elem, 
+                                  s->destroy_elem,
+                                  NULL);
+    if (!copy) {
+        if (status_adr) {
+            *status_adr = MEMORY_ERROR;
+        }
+        return NULL;
+    }
+    for (size_t i = 0; i < s->nr_elem; ++i) {
+        char *curr_elem_adr = (char *)copy->arr + i * copy->sizeof_elem;
+        copy->create_copy_elem(curr_elem_adr, (char *)s->arr + i * s->sizeof_elem);
+    }
+    copy->nr_elem = s->nr_elem;
+    if (status_adr) {
+        *status_adr = OK;
+    }
+    return copy;
+}
+
 struct set *reunion_2set(const struct set *a,
                          const struct set *b,
                          enum status *status_adr)
@@ -192,17 +225,20 @@ struct set *reunion_2set(const struct set *a,
     }
     struct set *s = create_set(a->max_capacity + b->max_capacity,
                                a->sizeof_elem,
-                               status_adr,
                                a->comp_elem,
                                a->create_copy_elem,
                                a->print_elem,
-                               a->destroy_elem);
+                               a->destroy_elem,
+                               status_adr);
     if (!s) {
         if (status_adr) {
             *status_adr = MEMORY_ERROR;
         }
         return NULL;
     }
-    // TODO:
+    
+    if (status_adr) {
+        *status_adr = OK;
+    }
     return s;
 }
