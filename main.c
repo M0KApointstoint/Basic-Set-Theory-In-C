@@ -31,8 +31,6 @@ void print_string(const void *string_adr)
 {
     if (*(char **)string_adr) {
         printf("%s\n", *(char **)string_adr);
-    } else {
-        printf("\n");
     }
 }
 
@@ -40,6 +38,7 @@ void destroy_string(void *target_string_adr)
 {
     if (*(char **)target_string_adr) {
         free(*(char **)target_string_adr);
+        *(char **)target_string_adr = NULL;
     }
 }
 
@@ -64,8 +63,9 @@ int main(void)
     add_elem(s, &s2, NULL);
     add_elem(s, &s2, NULL); // Checking duplicates.
     add_elem(s, &s3, NULL);
+    remove_elem(s, &s3, NULL);
     free(s1);
-    free(s2); // Deep copy was made.
+    free(s2);
     free(s3);
     print_set(s, NULL);
     destroy_set(s, NULL);

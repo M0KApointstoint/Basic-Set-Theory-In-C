@@ -3,6 +3,7 @@ enum status {
     OK = 0,
     INVALID_INPUT = 1,
     ELEM_EXISTS = 2,
+    ELEM_DOES_NOT_EXIST = 3,
 };
 
 struct set;
@@ -15,8 +16,6 @@ struct set *create_set(const size_t max_capacity,
                        void (*print_elem)(const void *),
                        void (*destroy_elem)(void *));
 
-int exist_check(const struct set *s, const void *elem_adr);
-
 int add_elem(struct set *s,
              const void *elem_adr, 
              enum status *status_adr);
@@ -24,3 +23,5 @@ int add_elem(struct set *s,
 int print_set(const struct set *s, enum status *status_adr);
 
 int destroy_set(struct set *s, enum status *status_adr);
+
+int remove_elem(struct set *s, const void *elem_adr, enum status *status_adr);

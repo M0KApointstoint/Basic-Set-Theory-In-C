@@ -20,6 +20,17 @@ struct set *create_set(const size_t max_capacity,
                        void (*print_elem)(const void *),
                        void (*destroy_elem)(void *))
 {
+    if (!max_capacity ||
+        !sizeof_elem ||
+        !comp_elem || 
+        !create_copy_elem || 
+        !print_elem || 
+        !destroy_elem) {
+        if (status_adr) {
+            *status_adr = INVALID_INPUT;
+        }
+        return NULL;
+    }
     struct set *s = malloc(sizeof(struct set));
     if (!s) {
         if (status_adr) {
@@ -62,7 +73,7 @@ int add_elem(struct set *s,
              const void *elem_adr, 
              enum status *status_adr)
 {
-    if (!s) {
+    if (!s || !elem_adr) {
         if (status_adr) {
             *status_adr = INVALID_INPUT;
         }
@@ -138,4 +149,60 @@ int destroy_set(struct set *s, enum status *status_adr)
         *status_adr = OK;
     }
     return 0;
+}
+
+int remove_elem(struct set *s, const void *elem_adr, enum status *status_adr)
+{
+    if (!s || !elem_adr) {
+        if (status_adr) {
+            *status_adr = INVALID_INPUT;
+        }
+        return 1;
+    }
+    for (size_t i = 0; i < s->nr_elem; ++i) {
+        char *curr_elem_adr = (char *)s->arr + i * s->sizeof_elem;
+        if (!s->comp_elem(curr_elem_adr, elem_adr)) {
+            s->destroy_elem(curr_elem_adr);
+            if (status_adr) {
+                *status_adr = OK;
+            }
+            return 0;
+        }
+    }
+    if (status_adr) {
+        *status_adr = ELEM_DOES_NOT_EXIST;
+    }
+    return 3;
+}
+
+struct set *reunion_2set(const struct set *a,
+                         const struct set *b,
+                         enum status *status_adr)
+{
+    if (!a ||
+        !b ||
+        a->sizeof_elem != b->sizeof_elem ||
+        a->create_copy_elem != b->create_copy_elem ||
+        a->print_elem != b->print_elem ||
+        a->destroy_elem != b->destroy_elem) {
+        if (status_adr) {
+            *status_adr = INVALID_INPUT;
+        }
+        return NULL;
+    }
+    struct set *s = create_set(a->max_capacity + b->max_capacity,
+                               a->sizeof_elem,
+                               status_adr,
+                               a->comp_elem,
+                               a->create_copy_elem,
+                               a->print_elem,
+                               a->destroy_elem);
+    if (!s) {
+        if (status_adr) {
+            *status_adr = MEMORY_ERROR;
+        }
+        return NULL;
+    }
+    // TODO:
+    return s;
 }
