@@ -8,15 +8,16 @@ struct set {
     size_t sizeof_elem;
     int (*comp_elem)(const void *, const void *);
     int (*create_copy_elem)(void *, const void *);
-    void (*print_elem)(void);
-    void (*destroy_elem)(void);
+    void (*print_elem)(const void *);
+    void (*destroy_elem)(const void *);
 };
 
 struct set *create_set(const size_t max_capacity,
                        const size_t sizeof_elem,
                        enum status *status_adr,
                        int (*comp_elem)(const void *, const void *),
-                       int (*create_copy_elem)(void *, const void *))
+                       int (*create_copy_elem)(void *, const void *),
+                       void (*print_elem)(const void *))
 {
     struct set *s = malloc(sizeof(struct set));
     if (!s) {
@@ -37,6 +38,7 @@ struct set *create_set(const size_t max_capacity,
     s->sizeof_elem = sizeof_elem;
     s->comp_elem = comp_elem;
     s->create_copy_elem = create_copy_elem;
+    s->print_elem = print_elem;
     if (status_adr) {
         *status_adr = OK;
     }
@@ -91,5 +93,20 @@ int add_elem(struct set *s,
         return -1;
     }
     s->nr_elem++;
+    return 0;
+}
+
+int print_set(const struct set *s, enum status *status_adr)
+{
+    if (!s) {
+        if (status_adr) {
+            *status_adr = INVALID_INPUT;
+        }
+        return 1;
+    }
+    for (size_t i = 0; i < s->nr_elem; ++i) {
+        char *curr_elem_adr = (char *)s->arr + i * s->sizeof_elem;
+        s->print_elem(curr_elem_adr);
+    }
     return 0;
 }

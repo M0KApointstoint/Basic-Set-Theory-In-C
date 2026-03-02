@@ -27,10 +27,16 @@ int create_copy_string(void *dest_string_adr, const void *src_string_adr)
     return 0;
 }
 
+void print_string(const void *string_adr)
+{
+    printf("%s\n", *(char **)string_adr);
+}
+
 int main(void)
 {
     size_t capacity = 32;
-    struct set *s = create_set(capacity, sizeof(char *), NULL, comp_string, create_copy_string);
+    struct set *s = create_set(capacity, sizeof(char *), NULL, comp_string, create_copy_string, print_string);
+    print_set(s, NULL);
     return 0;
 }
 

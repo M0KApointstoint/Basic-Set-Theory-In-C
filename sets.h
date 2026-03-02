@@ -11,10 +11,13 @@ struct set *create_set(const size_t max_capacity,
                        const size_t sizeof_elem,
                        enum status *status_adr,
                        int (*comp_elem)(const void *, const void *),
-                       int (*create_copy_elem)(void *, const void *));
+                       int (*create_copy_elem)(void *, const void *),
+                       void (*print_elem)(const void *));
 
 int exist_check(const struct set *s, const void *elem_adr);
 
 int add_elem(struct set *s,
              const void *elem_adr, 
              enum status *status_adr);
+
+int print_set(const struct set *s, enum status *status_adr);
