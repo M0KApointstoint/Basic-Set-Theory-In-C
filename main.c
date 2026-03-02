@@ -74,11 +74,11 @@ int main(void)
                                destroy_string,
                                NULL);
 
-    add_elem(s, &s3, NULL);
+    add_elem(t, &s3, NULL);
+    add_elem(t, &s1, NULL);
 
-    struct set *reuniune = union_2set(s, t, NULL);
-    destroy_set(&s, NULL);
-    print_set(reuniune, NULL);
+    struct set *intersectie = intersection_2set(s, t, NULL);
+    print_set(intersectie, NULL);
 
     free(s1);
     free(s2);
@@ -86,6 +86,6 @@ int main(void)
 
     destroy_set(&s, NULL);
     destroy_set(&t, NULL);
-    destroy_set(&reuniune, NULL);
+    destroy_set(&intersectie, NULL);
     return 0;
 }

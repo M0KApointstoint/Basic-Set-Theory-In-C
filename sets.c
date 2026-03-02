@@ -162,7 +162,7 @@ int remove_elem(struct set *s, const void *elem_adr, enum status *status_adr)
     }
     for (size_t i = 0; i < s->nr_elem; ++i) {
         char *curr_elem_adr = (char *)s->arr + i * s->sizeof_elem;
-        if (!s->comp_elem(curr_elem_adr, elem_adr)) {
+        if (curr_elem_adr && !s->comp_elem(curr_elem_adr, elem_adr)) {
             s->destroy_elem(curr_elem_adr);
             if (status_adr) {
                 *status_adr = OK;
@@ -235,6 +235,54 @@ struct set *union_2set(const struct set *a,
             if (add_elem(s, (char *)b->arr + i * b->sizeof_elem, status_adr) == -1) {
                 destroy_set(&s, NULL);
             }
+        }
+    }
+    if (status_adr) {
+        *status_adr = OK;
+    }
+    return s;
+}
+
+struct set *intersection_2set(const struct set *a,
+                              const struct set *b,
+                              enum status *status_adr)
+{
+    if (!a ||
+        !b ||
+        a->sizeof_elem != b->sizeof_elem ||
+        a->create_copy_elem != b->create_copy_elem ||
+        a->print_elem != b->print_elem ||
+        a->destroy_elem != b->destroy_elem) {
+        if (status_adr) {
+            *status_adr = INVALID_INPUT;
+        }
+        return NULL;
+    }
+    struct set *s = create_set(a->max_capacity + b->max_capacity,
+                               a->sizeof_elem,
+                               a->comp_elem,
+                               a->create_copy_elem,
+                               a->print_elem,
+                               a->destroy_elem,
+                               status_adr);
+    if (!s) {
+        if (status_adr) {
+            *status_adr = MEMORY_ERROR;
+        }
+        return NULL;
+    }
+    for (size_t i = 0; i < a->nr_elem; ++i) {
+        char *curr_elem_adr = (char *)s->arr + i * s->sizeof_elem;
+        char *curr_elem_adr_a = (char *)a->arr + i * a->sizeof_elem;
+        if (exist_check(b, curr_elem_adr_a)) {
+            if (s->create_copy_elem(curr_elem_adr, curr_elem_adr_a) == -1) {
+                destroy_set(&s, NULL);
+                if (status_adr) {
+                    *status_adr = MEMORY_ERROR;
+                }
+                return NULL;
+            }
+            s->nr_elem++;
         }
     }
     if (status_adr) {
