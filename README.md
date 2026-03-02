@@ -15,6 +15,7 @@ Compile and run:
 
 gcc -Wall -Werror main.c sets.c string_set_helper.c
 ./a.out
+```
 
 ---
 
