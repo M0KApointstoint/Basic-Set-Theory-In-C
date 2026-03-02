@@ -208,7 +208,7 @@ struct set *deep_copy_set(const struct set *s, enum status *status_adr)
     return copy;
 }
 
-struct set *reunion_2set(const struct set *a,
+struct set *union_2set(const struct set *a,
                          const struct set *b,
                          enum status *status_adr)
 {
@@ -223,20 +223,20 @@ struct set *reunion_2set(const struct set *a,
         }
         return NULL;
     }
-    struct set *s = create_set(a->max_capacity + b->max_capacity,
-                               a->sizeof_elem,
-                               a->comp_elem,
-                               a->create_copy_elem,
-                               a->print_elem,
-                               a->destroy_elem,
-                               status_adr);
+    struct set *s = deep_copy_set(a, NULL);
     if (!s) {
         if (status_adr) {
             *status_adr = MEMORY_ERROR;
         }
         return NULL;
     }
-    
+    for (size_t i = 0; i < b->nr_elem; ++i) {
+        if (exist_check(s, (char *)b->arr + i * b->sizeof_elem)) {
+            if (add_elem(s, (char *)b->arr + i * b->sizeof_elem, status_adr) == -1) {
+                destroy_set(&s, NULL);
+            }
+        }
+    }
     if (status_adr) {
         *status_adr = OK;
     }

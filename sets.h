@@ -27,3 +27,7 @@ int destroy_set(struct set **s_adr, enum status *status_adr);
 int remove_elem(struct set *s, const void *elem_adr, enum status *status_adr);
 
 struct set *deep_copy_set(const struct set *s, enum status *status_adr);
+
+struct set *union_2set(const struct set *a,
+                         const struct set *b,
+                         enum status *status_adr);

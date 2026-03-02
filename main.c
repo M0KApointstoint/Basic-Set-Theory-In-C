@@ -62,21 +62,30 @@ int main(void)
     strcpy(s1, "Hello, there!");
     strcpy(s2, "General Kenobi!");
     strcpy(s3, "I love CDL!");
+
     add_elem(s, &s1, NULL);
     add_elem(s, &s2, NULL);
-    add_elem(s, &s2, NULL); // Checking duplicates.
-    add_elem(s, &s3, NULL);
-    // remove_elem(s, &s3, NULL);
     
-    struct set *copy = deep_copy_set(s, NULL);
+    struct set *t = create_set(capacity,
+                               sizeof(char *),
+                               comp_string,
+                               create_copy_string,
+                               print_string,
+                               destroy_string,
+                               NULL);
+
+    add_elem(s, &s3, NULL);
+
+    struct set *reuniune = union_2set(s, t, NULL);
     destroy_set(&s, NULL);
-    print_set(copy, NULL);
-    destroy_set(&copy, NULL);
+    print_set(reuniune, NULL);
 
     free(s1);
     free(s2);
     free(s3);
-    print_set(s, NULL);
+
     destroy_set(&s, NULL);
+    destroy_set(&t, NULL);
+    destroy_set(&reuniune, NULL);
     return 0;
 }
