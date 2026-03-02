@@ -17,12 +17,12 @@ int comp_string(const void *a, const void *b)
 int create_copy_string(void *dest_string_adr, const void *src_string_adr)
 {
     char *src_string = *(char **)src_string_adr;
-    int src_len = strlen(src_string);
-    char *new_string = malloc((src_len + 1) * sizeof(char));
-    if (!new_string) {
+    size_t src_len = strlen(src_string);
+    char *dest_string = malloc((src_len + 1) * sizeof(char));
+    if (!dest_string) {
         return -1;
     }
-    char *dest_string = *(char **)dest_string_adr;
+    *(char **)dest_string_adr = dest_string;
     strcpy(dest_string, src_string);
     return 0;
 }
@@ -36,6 +36,17 @@ int main(void)
 {
     size_t capacity = 32;
     struct set *s = create_set(capacity, sizeof(char *), NULL, comp_string, create_copy_string, print_string);
+    char *s1 = malloc(32);
+    char *s2 = malloc(23);
+    strcpy(s1, "salut");
+    strcpy(s2, "ce faci!");
+    add_elem(s, &s1, NULL);
+    add_elem(s, &s2, NULL);
+    add_elem(s, &s2, NULL);
+    char *s3 = malloc(7);
+    strcpy(s3, "mooe!");
+    add_elem(s, &s3, NULL);
+    free(s2);
     print_set(s, NULL);
     return 0;
 }
