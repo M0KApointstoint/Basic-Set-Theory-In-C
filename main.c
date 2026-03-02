@@ -32,10 +32,15 @@ void print_string(const void *string_adr)
     printf("%s\n", *(char **)string_adr);
 }
 
+void destroy_string(void *target_string_adr)
+{
+    free(*(char **)target_string_adr);
+}
+
 int main(void)
 {
     size_t capacity = 32;
-    struct set *s = create_set(capacity, sizeof(char *), NULL, comp_string, create_copy_string, print_string);
+    struct set *s = create_set(capacity, sizeof(char *), NULL, comp_string, create_copy_string, print_string, destroy_string);
     char *s1 = malloc(32);
     char *s2 = malloc(23);
     strcpy(s1, "salut");
@@ -46,8 +51,11 @@ int main(void)
     char *s3 = malloc(7);
     strcpy(s3, "mooe!");
     add_elem(s, &s3, NULL);
+    free(s1);
     free(s2);
+    free(s3);
     print_set(s, NULL);
+    destroy_set(s, NULL);
     return 0;
 }
 
