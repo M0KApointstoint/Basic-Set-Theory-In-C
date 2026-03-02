@@ -1,9 +1,13 @@
+#ifndef SETS_H
+#define SETS_H
+
+#include <stdlib.h>
+
 enum status {
     MEMORY_ERROR = -1,
     OK = 0,
     INVALID_INPUT = 1,
     ELEM_EXISTS = 2,
-    ELEM_DOES_NOT_EXIST = 3,
 };
 
 struct set;
@@ -33,3 +37,5 @@ struct set *union_2set(const struct set *a,
 struct set *intersection_2set(const struct set *a,
                               const struct set *b,
                               enum status *status_adr);
+
+#endif

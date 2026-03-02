@@ -46,6 +46,7 @@ struct set *create_set(const size_t max_capacity,
         }
         return NULL;
     }
+    s->nr_elem = 0;
     s->max_capacity = max_capacity;
     s->sizeof_elem = sizeof_elem;
     s->comp_elem = comp_elem;
@@ -87,7 +88,7 @@ int add_elem(struct set *s,
     }
     if (s->nr_elem == s->max_capacity) {
         s->max_capacity *= 2;
-        void *temp = realloc(s, s->max_capacity * s->sizeof_elem);
+        void *temp = realloc(s->arr, s->max_capacity * s->sizeof_elem);
         if (!temp) {
             s->max_capacity /= 2;
             if (status_adr) {
@@ -95,7 +96,7 @@ int add_elem(struct set *s,
             }
             return -1;
         }
-        s = temp;
+        s->arr = temp;
     }
     char *new_elem_adr = (char *)s->arr + s->nr_elem * s->sizeof_elem;
     if (s->create_copy_elem(new_elem_adr, elem_adr) == -1) {
@@ -139,9 +140,7 @@ int destroy_set(struct set **s_adr, enum status *status_adr)
     }
     for (size_t i = 0; i < (*s_adr)->nr_elem; ++i) {
         char *curr_elem_adr = (char *)(*s_adr)->arr + i * (*s_adr)->sizeof_elem;
-        if (curr_elem_adr) {
-            (*s_adr)->destroy_elem(curr_elem_adr);
-        }
+        (*s_adr)->destroy_elem(curr_elem_adr);
     }
     free((*s_adr)->arr);
     free(*s_adr);
@@ -152,30 +151,6 @@ int destroy_set(struct set **s_adr, enum status *status_adr)
     return 0;
 }
 
-int remove_elem(struct set *s, const void *elem_adr, enum status *status_adr)
-{
-    if (!s || !elem_adr) {
-        if (status_adr) {
-            *status_adr = INVALID_INPUT;
-        }
-        return 1;
-    }
-    for (size_t i = 0; i < s->nr_elem; ++i) {
-        char *curr_elem_adr = (char *)s->arr + i * s->sizeof_elem;
-        if (curr_elem_adr && !s->comp_elem(curr_elem_adr, elem_adr)) {
-            s->destroy_elem(curr_elem_adr);
-            if (status_adr) {
-                *status_adr = OK;
-            }
-            return 0;
-        }
-    }
-    if (status_adr) {
-        *status_adr = ELEM_DOES_NOT_EXIST;
-    }
-    return 3;
-}
-
 struct set *deep_copy_set(const struct set *s, enum status *status_adr)
 {
     if (!s) {
@@ -184,7 +159,7 @@ struct set *deep_copy_set(const struct set *s, enum status *status_adr)
         }
         return NULL;
     }
-    struct set *copy = create_set(s->max_capacity, 
+    struct set *copy = create_set(s->nr_elem + 1, 
                                   s->sizeof_elem,
                                   s->comp_elem, 
                                   s->create_copy_elem, 
@@ -199,7 +174,13 @@ struct set *deep_copy_set(const struct set *s, enum status *status_adr)
     }
     for (size_t i = 0; i < s->nr_elem; ++i) {
         char *curr_elem_adr = (char *)copy->arr + i * copy->sizeof_elem;
-        copy->create_copy_elem(curr_elem_adr, (char *)s->arr + i * s->sizeof_elem);
+        if (copy->create_copy_elem(curr_elem_adr, (char *)s->arr + i * s->sizeof_elem)) {
+            destroy_set(&copy, NULL);
+            if (status_adr) {
+                *status_adr = MEMORY_ERROR;
+            }
+            return NULL;
+        }
     }
     copy->nr_elem = s->nr_elem;
     if (status_adr) {
@@ -215,6 +196,7 @@ struct set *union_2set(const struct set *a,
     if (!a ||
         !b ||
         a->sizeof_elem != b->sizeof_elem ||
+        a->comp_elem != b->comp_elem ||
         a->create_copy_elem != b->create_copy_elem ||
         a->print_elem != b->print_elem ||
         a->destroy_elem != b->destroy_elem) {
@@ -231,9 +213,10 @@ struct set *union_2set(const struct set *a,
         return NULL;
     }
     for (size_t i = 0; i < b->nr_elem; ++i) {
-        if (exist_check(s, (char *)b->arr + i * b->sizeof_elem)) {
+        if (!exist_check(s, (char *)b->arr + i * b->sizeof_elem)) {
             if (add_elem(s, (char *)b->arr + i * b->sizeof_elem, status_adr) == -1) {
                 destroy_set(&s, NULL);
+                return NULL;
             }
         }
     }
@@ -250,6 +233,7 @@ struct set *intersection_2set(const struct set *a,
     if (!a ||
         !b ||
         a->sizeof_elem != b->sizeof_elem ||
+        a->comp_elem != b->comp_elem ||
         a->create_copy_elem != b->create_copy_elem ||
         a->print_elem != b->print_elem ||
         a->destroy_elem != b->destroy_elem) {
@@ -272,7 +256,7 @@ struct set *intersection_2set(const struct set *a,
         return NULL;
     }
     for (size_t i = 0; i < a->nr_elem; ++i) {
-        char *curr_elem_adr = (char *)s->arr + i * s->sizeof_elem;
+        char *curr_elem_adr = (char *)s->arr + s->nr_elem * s->sizeof_elem;
         char *curr_elem_adr_a = (char *)a->arr + i * a->sizeof_elem;
         if (exist_check(b, curr_elem_adr_a)) {
             if (s->create_copy_elem(curr_elem_adr, curr_elem_adr_a) == -1) {
