@@ -10,6 +10,12 @@ February 2026.
 https://github.com/M0KApointstoint
 -------------------------------------------------------------------
 
+Compile and run:
+```bash
+
+gcc -Wall -Werror main.c sets.c string_set_helper.c
+./a.out
+
 ---
 
 ## Description:
